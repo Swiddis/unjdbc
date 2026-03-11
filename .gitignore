@@ -1,0 +1,6 @@
+/target
+# sample data
+/samples
+# benchmarking data
+perf.data*
+flamegraph.svg
