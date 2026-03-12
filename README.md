@@ -19,19 +19,11 @@ JDBC returns query results in a columnar format with a `schema` array and `datar
 }
 ```
 
-This tool converts it to a standard JSON array with key-value pairs:
+This tool converts it to plain NDJSON records:
 
 ```json
-[
-  {
-    "field1": "value1",
-    "field2": {"nested": "object"}
-  },
-  {
-    "field1": "value2",
-    "field2": {"nested": "object2"}
-  }
-]
+{"field1": "value1", "field2": {"nested": "object"}}
+{"field1": "value2", "field2": {"nested": "object2"}}
 ```
 
 ## Usage
