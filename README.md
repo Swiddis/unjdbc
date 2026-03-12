@@ -45,5 +45,5 @@ cat samples/big5.json | ./target/release/unjdbc
 
 You can also pipe to `jq` for further processing:
 ```bash
-./target/release/unjdbc samples/big5.json | jq '.[0]'
+./target/release/unjdbc samples/big5.json | jq -s 'length'
 ```
