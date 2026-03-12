@@ -1,0 +1,580 @@
+{
+  "schema": [
+    {
+      "name": "agent",
+      "type": "struct"
+    },
+    {
+      "name": "process",
+      "type": "struct"
+    },
+    {
+      "name": "log",
+      "type": "struct"
+    },
+    {
+      "name": "message",
+      "type": "string"
+    },
+    {
+      "name": "tags",
+      "type": "string"
+    },
+    {
+      "name": "cloud",
+      "type": "struct"
+    },
+    {
+      "name": "input",
+      "type": "struct"
+    },
+    {
+      "name": "@timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "data_stream",
+      "type": "struct"
+    },
+    {
+      "name": "host",
+      "type": "struct"
+    },
+    {
+      "name": "metrics",
+      "type": "struct"
+    },
+    {
+      "name": "aws",
+      "type": "struct"
+    },
+    {
+      "name": "event",
+      "type": "struct"
+    }
+  ],
+  "datarows": [
+    [
+      {
+        "name": "crimsonleader",
+        "id": "baac7358-a449-4c36-bf0f-befb211f1d38",
+        "type": "filebeat",
+        "ephemeral_id": "baac7358-a449-4c36-bf0f-befb211f1d38",
+        "version": "8.8.0"
+      },
+      {
+        "name": "systemd"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/eastfly"
+        }
+      },
+      "2024-03-13T06:40:29.680Z Mar 13 06:40:29 ip-149-126-89-40 systemd: toucan finger throat biter hero kangaroo beak weakcloud",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "ap-southeast-1"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:35:22",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "crimsonleader"
+      },
+      {
+        "size": 3419,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:29.68",
+          "log_stream": "eastfly"
+        }
+      },
+      {
+        "ingested": "2024-03-13 06:33:44.680922326",
+        "id": "frilllady",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "spicelifter",
+        "id": "98a5f50f-4ae2-4bc7-9bfd-3e26e7ac6da7",
+        "type": "filebeat",
+        "ephemeral_id": "98a5f50f-4ae2-4bc7-9bfd-3e26e7ac6da7",
+        "version": "8.8.0"
+      },
+      {
+        "name": "systemd"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/shoreape"
+        }
+      },
+      "2024-03-13T06:40:27.244Z Mar 13 06:40:27 ip-218-87-146-0 systemd: roach puppy leopard bat cat myth drifter ripper dragon hugger witch rider parrot kitten whip whip face scourge whale ocelot creamhyena",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "eu-central-2"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:14:22",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "spicelifter"
+      },
+      {
+        "size": 1576,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:27.244",
+          "log_stream": "shoreape"
+        }
+      },
+      {
+        "ingested": "2024-03-13 06:20:39.244837623",
+        "id": "slimetoucan",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "rosesong",
+        "id": "9d0fd4b2-0cf1-4b9b-9ad1-61e46657134d",
+        "type": "filebeat",
+        "ephemeral_id": "9d0fd4b2-0cf1-4b9b-9ad1-61e46657134d",
+        "version": "8.8.0"
+      },
+      {
+        "name": "kernel"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/apricotringer"
+        }
+      },
+      "2024-03-13T06:40:29.680Z Mar 13 06:40:29 ip-26-159-195-127 kernel: cap griffin monkey weasel moth mouse fighter kitten gargoyle sage thornhide",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "ap-northeast-3"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:12:30",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "rosesong"
+      },
+      {
+        "size": 3146,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:29.68",
+          "log_stream": "apricotringer"
+        }
+      },
+      {
+        "ingested": "2024-03-13 05:41:24.68094558",
+        "id": "flowerroach",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "pyritecloak",
+        "id": "baac7358-a449-4c36-bf0f-befb211f1d38",
+        "type": "filebeat",
+        "ephemeral_id": "baac7358-a449-4c36-bf0f-befb211f1d38",
+        "version": "8.8.0"
+      },
+      {
+        "name": "httpd"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/sagespear"
+        }
+      },
+      "2024-03-13T06:40:30.495Z Mar 13 06:40:30 ip-218-26-126-213 httpd: grovefoe",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "ap-southeast-3"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:34:51",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "pyritecloak"
+      },
+      {
+        "size": 1285,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:30.495",
+          "log_stream": "sagespear"
+        }
+      },
+      {
+        "ingested": "2024-03-13 06:15:25.495738159",
+        "id": "buttercupskinner",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "cypressshoulder",
+        "id": "c315dc22-3ea6-44dc-8d56-fd02f675367b",
+        "type": "filebeat",
+        "ephemeral_id": "c315dc22-3ea6-44dc-8d56-fd02f675367b",
+        "version": "8.8.0"
+      },
+      {
+        "name": "kernel"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/trailoriole"
+        }
+      },
+      "2024-03-13T06:40:27.244Z Mar 13 06:40:27 ip-143-170-252-41 kernel: sword player flasher jaguar throat eater skinner ridge shriek rider puma saltgrin",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "eu-west-2"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:17:58",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "cypressshoulder"
+      },
+      {
+        "size": 1513,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:27.244",
+          "log_stream": "trailoriole"
+        }
+      },
+      {
+        "ingested": "2024-03-13 06:27:58.244861559",
+        "id": "oliveroar",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "bittergriffin",
+        "id": "628cdfc8-a97a-4050-8f4f-bf53f2bf983c",
+        "type": "filebeat",
+        "ephemeral_id": "628cdfc8-a97a-4050-8f4f-bf53f2bf983c",
+        "version": "8.8.0"
+      },
+      {
+        "name": "httpd"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/firkeeper"
+        }
+      },
+      "2024-03-13T06:40:29.680Z Mar 13 06:40:29 ip-166-187-110-35 httpd: thorn pixie razor antelope razor seed gargoyle nape warlock fang shift toucan tundragambler",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "us-west-2"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:54:32",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "bittergriffin"
+      },
+      {
+        "size": 2906,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:29.68",
+          "log_stream": "firkeeper"
+        }
+      },
+      {
+        "ingested": "2024-03-13 06:02:28.680971153",
+        "id": "ivydolphin",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "cleverwatcher",
+        "id": "baac7358-a449-4c36-bf0f-befb211f1d38",
+        "type": "filebeat",
+        "ephemeral_id": "baac7358-a449-4c36-bf0f-befb211f1d38",
+        "version": "8.8.0"
+      },
+      {
+        "name": "httpd"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/muckscorpion"
+        }
+      },
+      "2024-03-13T06:40:28.689Z Mar 13 06:40:28 ip-46-120-106-129 httpd: antler eater forger paw wyrm shift speaker hair boa binder midnightmuse",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "eu-north-1"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:36:48",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "cleverwatcher"
+      },
+      {
+        "size": 1802,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:28.689",
+          "log_stream": "muckscorpion"
+        }
+      },
+      {
+        "ingested": "2024-03-13 05:57:18.689519343",
+        "id": "puzzledolphin",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "shimmerswisher",
+        "id": "c79a289f-6c16-4de2-a6c8-8ee5c84473d5",
+        "type": "filebeat",
+        "ephemeral_id": "c79a289f-6c16-4de2-a6c8-8ee5c84473d5",
+        "version": "8.8.0"
+      },
+      {
+        "name": "httpd"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/thundercrystal"
+        }
+      },
+      "2024-03-13T06:40:27.244Z Mar 13 06:40:27 ip-93-165-243-101 httpd: arm slave coyote elf cap frill donkey pig panther griffin stinger death centaur sloth lizard donkey raver shirt weasel gargoyle wyrm marbleglass",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "eu-south-2"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:12:52",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "shimmerswisher"
+      },
+      {
+        "size": 1569,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:27.244",
+          "log_stream": "thundercrystal"
+        }
+      },
+      {
+        "ingested": "2024-03-13 06:30:31.244914272",
+        "id": "paperlord",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "daisyweaver",
+        "id": "3dbba8f5-1576-4381-8c8c-24c988d20681",
+        "type": "filebeat",
+        "ephemeral_id": "3dbba8f5-1576-4381-8c8c-24c988d20681",
+        "version": "8.8.0"
+      },
+      {
+        "name": "journal"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/abalonerider"
+        }
+      },
+      "2024-03-13T06:40:27.244Z Mar 13 06:40:27 ip-194-146-27-137 journal: clearmaster",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "eu-west-1"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:31:32",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "daisyweaver"
+      },
+      {
+        "size": 1521,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:27.244",
+          "log_stream": "abalonerider"
+        }
+      },
+      {
+        "ingested": "2024-03-13 05:44:02.244937378",
+        "id": "satinking",
+        "dataset": "generic"
+      }
+    ],
+    [
+      {
+        "name": "candyshirt",
+        "id": "9d0fd4b2-0cf1-4b9b-9ad1-61e46657134d",
+        "type": "filebeat",
+        "ephemeral_id": "9d0fd4b2-0cf1-4b9b-9ad1-61e46657134d",
+        "version": "8.8.0"
+      },
+      {
+        "name": "journal"
+      },
+      {
+        "file": {
+          "path": "/var/log/messages/iridescentstag"
+        }
+      },
+      "2024-03-13T06:40:29.681Z Mar 13 06:40:29 ip-70-116-234-122 journal: bard kangaroo raccoon samurai wasp slave weaver finger gem flame knight ogre nose lord boot chatter thumb hawk voice shardsnarl",
+      [
+        "preserve_original_event"
+      ],
+      {
+        "region": "ap-northeast-3"
+      },
+      {
+        "type": "aws-cloudwatch"
+      },
+      "2023-01-01 00:44:25",
+      {
+        "namespace": "default",
+        "type": "logs",
+        "dataset": "generic"
+      },
+      {
+        "name": "candyshirt"
+      },
+      {
+        "size": 2582,
+        "tmin": 1
+      },
+      {
+        "cloudwatch": {
+          "log_group": "/var/log/messages",
+          "ingestion_time": "2024-03-13 06:40:29.681",
+          "log_stream": "iridescentstag"
+        }
+      },
+      {
+        "ingested": "2024-03-13 06:04:25.681188415",
+        "id": "crimsonthunder",
+        "dataset": "generic"
+      }
+    ]
+  ],
+  "total": 10,
+  "size": 10
+}
