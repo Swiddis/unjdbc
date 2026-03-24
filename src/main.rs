@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde_json::{Map, Value};
 use std::env;
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, BufWriter, Read, Write};
 use std::process;
 
 #[derive(Debug, Deserialize)]
@@ -60,12 +60,18 @@ fn main() {
 
     let result = convert_jdbc_to_json(jdbc_response);
 
+    let stdout = io::stdout();
+    let lock = stdout.lock();
+    let mut writer = BufWriter::new(lock);
+
     // Output as ndjson (newline-delimited JSON)
     for record in result {
         let output = serde_json::to_string(&record).unwrap_or_else(|err| {
             eprintln!("Error serializing output: {}", err);
+            writer.flush().unwrap();
             process::exit(1);
         });
-        println!("{}", output);
+        writeln!(writer, "{}", output).unwrap();
     }
+    writer.flush().unwrap();
 }
