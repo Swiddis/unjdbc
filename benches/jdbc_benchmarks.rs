@@ -1,7 +1,7 @@
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use std::hint::black_box;
 use std::io::Cursor;
-use unjdbc::process_jdbc_json_to_writer;
+use unjdbc::convert_jdbc;
 
 fn generate_jdbc_json(num_rows: usize, num_cols: usize) -> String {
     let mut schema = Vec::new();
@@ -35,7 +35,7 @@ fn bench_end_to_end(c: &mut Criterion) {
             b.iter(|| {
                 let mut reader = Cursor::new(black_box(input.as_bytes()));
                 let mut output = Vec::new();
-                process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+                convert_jdbc(&mut reader, &mut output).unwrap();
                 black_box(output);
             });
         });

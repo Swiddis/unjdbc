@@ -1,11 +1,11 @@
 use sonic_rs::{JsonContainerTrait, JsonValueTrait, Object, Value};
 use std::io::{Read, Write};
 
-pub fn parse_jdbc_json(input: &str) -> Result<Value, sonic_rs::Error> {
+fn parse_jdbc_json(input: &str) -> Result<Value, sonic_rs::Error> {
     sonic_rs::from_str(input)
 }
 
-pub fn extract_field_names(schema: &[Value]) -> Vec<&str> {
+fn extract_field_names(schema: &[Value]) -> Vec<&str> {
     schema
         .iter()
         .filter_map(|field| {
@@ -17,7 +17,7 @@ pub fn extract_field_names(schema: &[Value]) -> Vec<&str> {
         .collect()
 }
 
-pub fn transform_row(row: &[Value], field_names: &[&str]) -> Object {
+fn transform_row(row: &[Value], field_names: &[&str]) -> Object {
     let mut record = Object::with_capacity(field_names.len());
     for (&field_name, value) in field_names.iter().zip(row.iter()) {
         record.insert(field_name, value.clone());
@@ -25,16 +25,7 @@ pub fn transform_row(row: &[Value], field_names: &[&str]) -> Object {
     record
 }
 
-pub fn transform_datarows(datarows: &[Value], field_names: &[&str]) -> Vec<String> {
-    let mut results = Vec::with_capacity(datarows.len());
-    for row in datarows.iter().filter_map(|row| row.as_array()) {
-        let record = transform_row(row, field_names);
-        results.push(sonic_rs::to_string(&record).unwrap());
-    }
-    results
-}
-
-pub fn process_jdbc_json_to_writer<R: Read, W: Write>(
+pub fn convert_jdbc<R: Read, W: Write>(
     reader: &mut R,
     writer: &mut W,
 ) -> Result<(), String> {
@@ -88,7 +79,7 @@ mod tests {
         let mut reader = Cursor::new(input.as_bytes());
         let mut output = Vec::new();
 
-        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+        convert_jdbc(&mut reader, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 10);
@@ -104,7 +95,7 @@ mod tests {
         let mut reader = Cursor::new(input.as_bytes());
         let mut output = Vec::new();
 
-        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+        convert_jdbc(&mut reader, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 10);
@@ -121,7 +112,7 @@ mod tests {
         let mut reader = Cursor::new(input.as_bytes());
         let mut output = Vec::new();
 
-        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+        convert_jdbc(&mut reader, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 10);
@@ -141,7 +132,7 @@ mod tests {
         let mut reader = Cursor::new(input.as_bytes());
         let mut output = Vec::new();
 
-        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+        convert_jdbc(&mut reader, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 0);
@@ -153,7 +144,7 @@ mod tests {
         let mut reader = Cursor::new(input.as_bytes());
         let mut output = Vec::new();
 
-        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+        convert_jdbc(&mut reader, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 1);

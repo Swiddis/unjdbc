@@ -2,7 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufReader, BufWriter};
 use std::process;
-use unjdbc::process_jdbc_json_to_writer;
+use unjdbc::convert_jdbc;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -18,11 +18,11 @@ fn main() {
         });
         let mut reader = BufReader::new(file);
         let mut writer = BufWriter::new(stdout.lock());
-        process_jdbc_json_to_writer(&mut reader, &mut writer)
+        convert_jdbc(&mut reader, &mut writer)
     } else {
         let mut reader = BufReader::new(stdin.lock());
         let mut writer = BufWriter::new(stdout.lock());
-        process_jdbc_json_to_writer(&mut reader, &mut writer)
+        convert_jdbc(&mut reader, &mut writer)
     };
 
     if let Err(err) = result {
