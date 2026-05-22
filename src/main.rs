@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::io::{self, BufWriter, Read, Write};
 use std::process;
-use unjdbc::process_jdbc_json;
+use unjdbc::process_jdbc_json_to_writer;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -24,19 +24,14 @@ fn main() {
         buffer
     };
 
-    let results = process_jdbc_json(&input_json).unwrap_or_else(|err| {
-        eprintln!("Error processing JDBC JSON: {}", err);
-        process::exit(1);
-    });
-
     let stdout = io::stdout();
     let lock = stdout.lock();
     let mut writer = BufWriter::new(lock);
 
-    for output in results {
-        if writeln!(writer, "{}", output).is_err() {
-            break;
-        }
+    if let Err(err) = process_jdbc_json_to_writer(&input_json, &mut writer) {
+        eprintln!("Error processing JDBC JSON: {}", err);
+        process::exit(1);
     }
+
     let _ = writer.flush();
 }

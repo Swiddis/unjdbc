@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use sonic_rs::JsonContainerTrait;
 use std::hint::black_box;
-use unjdbc::{extract_field_names, parse_jdbc_json, transform_datarows, transform_row};
+use unjdbc::{extract_field_names, parse_jdbc_json, process_jdbc_json_to_writer, transform_datarows, transform_row};
 
 fn generate_jdbc_json(num_rows: usize, num_cols: usize) -> String {
     let mut schema = Vec::new();
@@ -136,12 +136,31 @@ fn bench_end_to_end(c: &mut Criterion) {
     group.finish();
 }
 
+fn bench_streaming(c: &mut Criterion) {
+    let mut group = c.benchmark_group("streaming");
+
+    for size in [10, 500, 10000].iter() {
+        let input = generate_jdbc_json(*size, 5);
+        group.throughput(Throughput::Elements(*size as u64));
+        group.bench_with_input(BenchmarkId::from_parameter(size), &input, |b, input| {
+            b.iter(|| {
+                let mut output = Vec::new();
+                process_jdbc_json_to_writer(black_box(input), &mut output).unwrap();
+                black_box(output);
+            });
+        });
+    }
+
+    group.finish();
+}
+
 criterion_group!(
     benches,
     bench_parse,
     bench_extract_field_names,
     bench_transform_row,
     bench_transform_datarows,
-    bench_end_to_end
+    bench_end_to_end,
+    bench_streaming
 );
 criterion_main!(benches);
