@@ -28,22 +28,22 @@ This tool converts it to plain NDJSON records:
 
 ## Usage
 
-Build the project:
+Install the project:
 ```bash
-cargo build --release
+cargo install --path .
 ```
 
 Convert a JDBC file:
 ```bash
-./target/release/unjdbc samples/big5.json
+unjdbc samples/big5.json
 ```
 
 Or pipe from stdin:
 ```bash
-cat samples/big5.json | ./target/release/unjdbc
+cat samples/big5.json | unjdbc
 ```
 
 You can also pipe to `jq` for further processing:
 ```bash
-./target/release/unjdbc samples/big5.json | jq -s 'length'
+unjdbc samples/big5.json | jq -s 'length'
 ```
