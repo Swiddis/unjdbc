@@ -19,7 +19,7 @@ cargo bench --bench jdbc_benchmarks end_to_end
 ## Benchmark Groups
 
 ### `parse`
-Measures JSON deserialization performance with varying dataset sizes (10, 100, 1000 rows).
+Measures JSON deserialization performance with varying dataset sizes (10, 500, 10000 rows).
 Tests the `parse_jdbc_json` function.
 
 ### `extract_field_names`
@@ -31,7 +31,7 @@ Measures single row transformation performance with varying column counts (5, 10
 Tests the `transform_row` function - the core transformation logic.
 
 ### `transform_datarows`
-Measures bulk row transformation and serialization with varying dataset sizes (10, 100, 1000 rows).
+Measures bulk row transformation and serialization with varying dataset sizes (10, 500, 10000 rows).
 Tests the `transform_datarows` function.
 
 ### `end_to_end`
