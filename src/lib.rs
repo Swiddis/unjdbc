@@ -67,3 +67,99 @@ pub fn process_jdbc_json_to_writer<R: Read, W: Write>(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+
+    fn parse_output_lines(output: &[u8]) -> Vec<Value> {
+        String::from_utf8(output.to_vec())
+            .unwrap()
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(|line| sonic_rs::from_str(line).unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn test_messages_sample() {
+        let input = include_str!("../samples/messages.json");
+        let mut reader = Cursor::new(input.as_bytes());
+        let mut output = Vec::new();
+
+        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+
+        let records = parse_output_lines(&output);
+        assert_eq!(records.len(), 10);
+
+        let first = records[0].as_object().unwrap();
+        assert_eq!(first.get(&"@timestamp").unwrap().as_str().unwrap(), "2023-01-01 00:35:22");
+        assert!(first.get(&"message").unwrap().as_str().unwrap().contains("toucan finger throat"));
+    }
+
+    #[test]
+    fn test_request_logs_sample() {
+        let input = include_str!("../samples/request_logs.json");
+        let mut reader = Cursor::new(input.as_bytes());
+        let mut output = Vec::new();
+
+        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+
+        let records = parse_output_lines(&output);
+        assert_eq!(records.len(), 10);
+
+        let first = records[0].as_object().unwrap();
+        assert_eq!(first.get(&"trace_id").unwrap().as_str().unwrap(), "0b03a46a-db71-404a-b637-e945b1a0f0eb");
+        assert_eq!(first.get(&"bytes_received").unwrap().as_i64().unwrap(), 188);
+        assert_eq!(first.get(&"latency_ms").unwrap().as_i64().unwrap(), 75);
+    }
+
+    #[test]
+    fn test_big5_sample() {
+        let input = include_str!("../samples/big5.json");
+        let mut reader = Cursor::new(input.as_bytes());
+        let mut output = Vec::new();
+
+        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+
+        let records = parse_output_lines(&output);
+        assert_eq!(records.len(), 10);
+
+        let first = records[0].as_object().unwrap();
+        assert!(first.contains_key(&"agent"));
+        assert!(first.contains_key(&"process"));
+        assert!(first.contains_key(&"@timestamp"));
+
+        let agent = first.get(&"agent").unwrap().as_object().unwrap();
+        assert_eq!(agent.get(&"name").unwrap().as_str().unwrap(), "crimsonleader");
+    }
+
+    #[test]
+    fn test_empty_datarows() {
+        let input = r#"{"schema":[{"name":"id","type":"int"}],"datarows":[]}"#;
+        let mut reader = Cursor::new(input.as_bytes());
+        let mut output = Vec::new();
+
+        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+
+        let records = parse_output_lines(&output);
+        assert_eq!(records.len(), 0);
+    }
+
+    #[test]
+    fn test_single_row() {
+        let input = r#"{"schema":[{"name":"name","type":"string"},{"name":"age","type":"int"}],"datarows":[["Alice",30]]}"#;
+        let mut reader = Cursor::new(input.as_bytes());
+        let mut output = Vec::new();
+
+        process_jdbc_json_to_writer(&mut reader, &mut output).unwrap();
+
+        let records = parse_output_lines(&output);
+        assert_eq!(records.len(), 1);
+
+        let first = records[0].as_object().unwrap();
+        assert_eq!(first.get(&"name").unwrap().as_str().unwrap(), "Alice");
+        assert_eq!(first.get(&"age").unwrap().as_i64().unwrap(), 30);
+    }
+}
