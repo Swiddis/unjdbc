@@ -1,5 +1,5 @@
 use sonic_rs::{JsonContainerTrait, JsonValueTrait, Object, Value};
-use std::io::Write;
+use std::io::{Read, Write};
 
 pub fn parse_jdbc_json(input: &str) -> Result<Value, sonic_rs::Error> {
     sonic_rs::from_str(input)
@@ -34,11 +34,16 @@ pub fn transform_datarows(datarows: &[Value], field_names: &[&str]) -> Vec<Strin
     results
 }
 
-pub fn process_jdbc_json_to_writer<W: Write>(
-    input_json: &str,
+pub fn process_jdbc_json_to_writer<R: Read, W: Write>(
+    reader: &mut R,
     writer: &mut W,
 ) -> Result<(), String> {
-    let parsed: Value = parse_jdbc_json(input_json).map_err(|e| e.to_string())?;
+    let mut input_json = String::new();
+    reader
+        .read_to_string(&mut input_json)
+        .map_err(|e| e.to_string())?;
+
+    let parsed: Value = parse_jdbc_json(&input_json).map_err(|e| e.to_string())?;
 
     let obj = parsed.as_object().ok_or("Expected JSON object at root")?;
 

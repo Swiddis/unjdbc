@@ -1,37 +1,32 @@
 use std::env;
-use std::fs;
-use std::io::{self, BufWriter, Read, Write};
+use std::fs::File;
+use std::io::{self, BufReader, BufWriter};
 use std::process;
 use unjdbc::process_jdbc_json_to_writer;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let input_json = if args.len() > 1 {
+    let stdin = io::stdin();
+    let stdout = io::stdout();
+
+    let result = if args.len() > 1 {
         let filename = &args[1];
-        fs::read_to_string(filename).unwrap_or_else(|err| {
-            eprintln!("Error reading file '{}': {}", filename, err);
+        let file = File::open(filename).unwrap_or_else(|err| {
+            eprintln!("Error opening file '{}': {}", filename, err);
             process::exit(1);
-        })
+        });
+        let mut reader = BufReader::new(file);
+        let mut writer = BufWriter::new(stdout.lock());
+        process_jdbc_json_to_writer(&mut reader, &mut writer)
     } else {
-        let mut buffer = String::new();
-        io::stdin()
-            .read_to_string(&mut buffer)
-            .unwrap_or_else(|err| {
-                eprintln!("Error reading from stdin: {}", err);
-                process::exit(1);
-            });
-        buffer
+        let mut reader = BufReader::new(stdin.lock());
+        let mut writer = BufWriter::new(stdout.lock());
+        process_jdbc_json_to_writer(&mut reader, &mut writer)
     };
 
-    let stdout = io::stdout();
-    let lock = stdout.lock();
-    let mut writer = BufWriter::new(lock);
-
-    if let Err(err) = process_jdbc_json_to_writer(&input_json, &mut writer) {
+    if let Err(err) = result {
         eprintln!("Error processing JDBC JSON: {}", err);
         process::exit(1);
     }
-
-    let _ = writer.flush();
 }
