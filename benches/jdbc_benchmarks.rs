@@ -28,17 +28,23 @@ fn generate_jdbc_json(num_rows: usize, num_cols: usize) -> String {
 fn bench_end_to_end(c: &mut Criterion) {
     let mut group = c.benchmark_group("end_to_end");
 
-    for size in [10, 500, 10000].iter() {
-        let input = generate_jdbc_json(*size, 5);
-        group.throughput(Throughput::Elements(*size as u64));
-        group.bench_with_input(BenchmarkId::from_parameter(size), &input, |b, input| {
-            b.iter(|| {
-                let mut reader = Cursor::new(black_box(input.as_bytes()));
-                let mut output = Vec::new();
-                convert_jdbc(&mut reader, &mut output).unwrap();
-                black_box(output);
-            });
-        });
+    for rows in [10, 500, 10000].iter() {
+        for columns in [5, 20, 100].iter() {
+            let input = generate_jdbc_json(*rows, *columns);
+            group.throughput(Throughput::Elements((*rows * *columns) as u64));
+            group.bench_with_input(
+                BenchmarkId::new("rows_columns", format!("{}x{}", rows, columns)),
+                &input,
+                |b, input| {
+                    b.iter(|| {
+                        let mut reader = Cursor::new(black_box(input.as_bytes()));
+                        let mut output = Vec::new();
+                        convert_jdbc(&mut reader, &mut output).unwrap();
+                        black_box(output);
+                    });
+                },
+            );
+        }
     }
 
     group.finish();
