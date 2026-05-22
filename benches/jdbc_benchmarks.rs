@@ -1,7 +1,10 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use sonic_rs::JsonContainerTrait;
 use std::hint::black_box;
-use unjdbc::{extract_field_names, parse_jdbc_json, process_jdbc_json_to_writer, transform_datarows, transform_row};
+use unjdbc::{
+    extract_field_names, parse_jdbc_json, process_jdbc_json_to_writer, transform_datarows,
+    transform_row,
+};
 
 fn generate_jdbc_json(num_rows: usize, num_cols: usize) -> String {
     let mut schema = Vec::new();

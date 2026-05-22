@@ -40,9 +40,7 @@ pub fn process_jdbc_json_to_writer<W: Write>(
 ) -> Result<(), String> {
     let parsed: Value = parse_jdbc_json(input_json).map_err(|e| e.to_string())?;
 
-    let obj = parsed
-        .as_object()
-        .ok_or("Expected JSON object at root")?;
+    let obj = parsed.as_object().ok_or("Expected JSON object at root")?;
 
     let schema = obj
         .get(&"schema")
@@ -63,27 +61,4 @@ pub fn process_jdbc_json_to_writer<W: Write>(
     }
 
     Ok(())
-}
-
-// Keep old API for benchmarks
-pub fn process_jdbc_json(input_json: &str) -> Result<Vec<String>, String> {
-    let parsed: Value = parse_jdbc_json(input_json).map_err(|e| e.to_string())?;
-
-    let obj = parsed
-        .as_object()
-        .ok_or("Expected JSON object at root")?;
-
-    let schema = obj
-        .get(&"schema")
-        .and_then(|s| s.as_array())
-        .ok_or("Missing or invalid 'schema' field")?;
-
-    let field_names = extract_field_names(schema);
-
-    let datarows = obj
-        .get(&"datarows")
-        .and_then(|d| d.as_array())
-        .ok_or("Missing or invalid 'datarows' field")?;
-
-    Ok(transform_datarows(datarows, &field_names))
 }
