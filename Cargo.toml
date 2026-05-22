@@ -5,3 +5,10 @@ edition = "2024"
 
 [dependencies]
 sonic-rs = "0.5"
+
+[dev-dependencies]
+criterion = "0.8.2"
+
+[[bench]]
+name = "jdbc_benchmarks"
+harness = false
