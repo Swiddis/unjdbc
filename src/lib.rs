@@ -1,58 +1,101 @@
 use anyhow::{Result, anyhow};
-use sonic_rs::{JsonContainerTrait, JsonValueTrait, Object, Value};
+use logos::{Lexer, Logos};
 use std::io::Write;
 
-fn extract_field_names(schema: &[Value]) -> Vec<&str> {
-    schema
-        .iter()
-        .filter_map(|field| {
-            field
-                .as_object()
-                .and_then(|f| f.get(&"name"))
-                .and_then(|n| n.as_str())
-        })
-        .collect()
+/// Token scheme designed for efficiently copying input to formatted output.
+/// We only really care about object markers and spans of bytes.
+///
+/// For numbers and strings, regex is from logos handbook.
+#[derive(Logos, Debug, PartialEq)]
+#[logos(skip r"[ \t\r\n]+")]
+enum Token {
+    // object markers
+    #[token("{")]
+    LeftBrace,
+    #[token("}")]
+    RightBrace,
+    #[token("[")]
+    LeftBracket,
+    #[token("]")]
+    RightBracket,
+    #[token(":")]
+    Colon,
+    #[token(",")]
+    Comma,
+
+    // values
+    #[token("true")]
+    True,
+    #[token("false")]
+    False,
+    #[token("null")]
+    Null,
+    #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?")]
+    Number,
+    #[regex(r#""([^"\\\x00-\x1F]|\\(["\\bnfrt/]|u[a-fA-F0-9]{4}))*""#)]
+    String,
 }
 
-fn transform_row(row: &[Value], field_names: &[&str]) -> Object {
-    let mut record = Object::with_capacity(field_names.len());
-    for (&field_name, value) in field_names.iter().zip(row.iter()) {
-        record.insert(field_name, value.clone());
+struct Scanner<'a, 'b, W: Write> {
+    lexer: Lexer<'a, Token>,
+    writer: &'b W,
+    fields: Vec<&'a str>,
+    stack: Vec<char>,
+}
+
+impl<'a, 'b, W: Write> Scanner<'a, 'b, W> {
+    fn take(self: &mut Self, token: Token) -> Result<Token> {
+        match self.lexer.next() {
+            Some(Ok(t)) if t == token => Ok(token),
+            Some(Ok(t)) => Err(anyhow!("expected {:?}, found {:?}", token, t)),
+            Some(Err(_)) => Err(anyhow!("invalid token, expected {:?}", token)),
+            None => Err(anyhow!("premature eof, expected {:?}", token)),
+        }
     }
-    record
+
+    fn seek_key(self: &mut Self, _key: &str) -> Result<()> {
+        todo!()
+    }
+
+    fn seek_end_of_object(self: &mut Self) -> Result<()> {
+        todo!()
+    }
+
+    fn scan_schema(self: &mut Self) -> Result<()> {
+        todo!()
+    }
+
+    fn scan_datarows(self: &mut Self) -> Result<()> {
+        todo!()
+    }
+
+    fn scan_jdbc(self: &mut Self) -> Result<()> {
+        self.take(Token::LeftBrace)?;
+        self.seek_key("schema")?;
+        self.scan_schema()?;
+        self.seek_key("datarows")?;
+        self.scan_datarows()?;
+        self.seek_end_of_object()?;
+        Ok(())
+    }
 }
 
 pub fn convert_jdbc<W: Write>(input_json: &str, writer: &mut W) -> Result<()> {
-    let parsed: Value = sonic_rs::from_str(&input_json)?;
-
-    let obj = parsed
-        .as_object()
-        .ok_or(anyhow!("Expected json object at root"))?;
-
-    let schema = obj
-        .get(&"schema")
-        .and_then(|s| s.as_array())
-        .ok_or(anyhow!("Missing or invalid 'schema' field"))?;
-
-    let field_names = extract_field_names(schema);
-
-    let datarows = obj
-        .get(&"datarows")
-        .and_then(|d| d.as_array())
-        .ok_or(anyhow!("Missing or invalid 'datarows' field"))?;
-
-    for row in datarows.iter().filter_map(|row| row.as_array()) {
-        let record = transform_row(row, &field_names);
-        let json_str = sonic_rs::to_string(&record)?;
-        writeln!(writer, "{}", json_str)?;
-    }
-
+    let lexer = Token::lexer(input_json);
+    let mut scanner = Scanner {
+        lexer,
+        writer,
+        fields: Vec::new(),
+        stack: Vec::new(),
+    };
+    scanner.scan_jdbc()?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sonic_rs::{JsonContainerTrait, JsonValueTrait, Value};
 
     fn parse_output_lines(output: &[u8]) -> Vec<Value> {
         String::from_utf8(output.to_vec())

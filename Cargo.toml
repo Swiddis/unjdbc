@@ -5,9 +5,10 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.102"
-sonic-rs = "0.5"
+logos = "0.16.1"
 
 [dev-dependencies]
+sonic-rs = "0.5"
 criterion = "0.8.2"
 
 [[bench]]
