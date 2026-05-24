@@ -4,6 +4,7 @@ version = "0.2.3"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.102"
 sonic-rs = "0.5"
 
 [dev-dependencies]

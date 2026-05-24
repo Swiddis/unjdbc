@@ -1,3 +1,4 @@
+use anyhow::{Result, anyhow};
 use sonic_rs::{JsonContainerTrait, JsonValueTrait, Object, Value};
 use std::io::Write;
 
@@ -21,27 +22,29 @@ fn transform_row(row: &[Value], field_names: &[&str]) -> Object {
     record
 }
 
-pub fn convert_jdbc<W: Write>(input_json: &str, writer: &mut W) -> Result<(), String> {
-    let parsed: Value = sonic_rs::from_str(&input_json).map_err(|e| e.to_string())?;
+pub fn convert_jdbc<W: Write>(input_json: &str, writer: &mut W) -> Result<()> {
+    let parsed: Value = sonic_rs::from_str(&input_json)?;
 
-    let obj = parsed.as_object().ok_or("Expected JSON object at root")?;
+    let obj = parsed
+        .as_object()
+        .ok_or(anyhow!("Expected json object at root"))?;
 
     let schema = obj
         .get(&"schema")
         .and_then(|s| s.as_array())
-        .ok_or("Missing or invalid 'schema' field")?;
+        .ok_or(anyhow!("Missing or invalid 'schema' field"))?;
 
     let field_names = extract_field_names(schema);
 
     let datarows = obj
         .get(&"datarows")
         .and_then(|d| d.as_array())
-        .ok_or("Missing or invalid 'datarows' field")?;
+        .ok_or(anyhow!("Missing or invalid 'datarows' field"))?;
 
     for row in datarows.iter().filter_map(|row| row.as_array()) {
         let record = transform_row(row, &field_names);
-        let json_str = sonic_rs::to_string(&record).map_err(|e| e.to_string())?;
-        writeln!(writer, "{}", json_str).map_err(|e| e.to_string())?;
+        let json_str = sonic_rs::to_string(&record)?;
+        writeln!(writer, "{}", json_str)?;
     }
 
     Ok(())
