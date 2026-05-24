@@ -1,6 +1,5 @@
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use std::hint::black_box;
-use std::io::Cursor;
 use unjdbc::convert_jdbc;
 
 fn generate_jdbc_json(num_rows: usize, num_cols: usize) -> String {
@@ -37,9 +36,8 @@ fn bench_end_to_end(c: &mut Criterion) {
                 &input,
                 |b, input| {
                     b.iter(|| {
-                        let mut reader = Cursor::new(black_box(input.as_bytes()));
                         let mut output = Vec::new();
-                        convert_jdbc(&mut reader, &mut output).unwrap();
+                        convert_jdbc(&input, &mut output).unwrap();
                         black_box(output);
                     });
                 },
