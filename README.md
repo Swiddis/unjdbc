@@ -61,6 +61,9 @@ While it catches many types of errors, those errors aren't particularly descript
 (In particular, invalid objects in datarows are likely to be copied verbatim.)
 This allows it to run faster than `wc`.
 
+Some notes on the past and possible future of this tool are in `NOTES.md`.
+These were written before the current version so the tenses might be off.
+
 For a more reliable version, check out the `sonic` or `serde` historic tags.
 
 ## On AI
