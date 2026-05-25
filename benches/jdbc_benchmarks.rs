@@ -37,7 +37,7 @@ fn bench_end_to_end(c: &mut Criterion) {
                 |b, input| {
                     b.iter(|| {
                         let mut output = Vec::new();
-                        convert_jdbc(&input, &mut output).unwrap();
+                        convert_jdbc(input, &mut output).unwrap();
                         black_box(output);
                     });
                 },

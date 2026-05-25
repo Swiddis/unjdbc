@@ -32,6 +32,7 @@ enum Token<'source> {
     Null,
     #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?")]
     Number(&'source str),
+    // Note that this token includes its quotes, which is fine since we're just copying. Caller needs to include quotes when comparing and such.
     #[regex(r#""([^"\\\x00-\x1F]|\\(["\\bnfrt/]|u[a-fA-F0-9]{4}))*""#)]
     String(&'source str),
 }
@@ -44,7 +45,7 @@ struct Scanner<'source, 'dest, W: Write> {
 }
 
 impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
-    fn next(self: &mut Self) -> Result<Token<'source>> {
+    fn next(&mut self) -> Result<Token<'source>> {
         match self.lexer.next() {
             Some(Ok(t)) => Ok(t),
             Some(Err(_)) => Err(anyhow!("invalid token")),
@@ -52,14 +53,14 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
-    fn take(self: &mut Self, token: Token<'static>) -> Result<Token<'source>> {
+    fn take(&mut self, token: Token<'static>) -> Result<Token<'source>> {
         match self.next()? {
             t if t == token => Ok(token),
             t => Err(anyhow!("expected {token:?}, found {t:?}")),
         }
     }
 
-    fn take_string(self: &mut Self) -> Result<Token<'source>> {
+    fn take_string(&mut self) -> Result<Token<'source>> {
         let token = self.next()?;
         match token {
             Token::String(_) => Ok(token),
@@ -67,7 +68,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
-    fn skip_value(self: &mut Self) -> Result<()> {
+    fn skip_value(&mut self) -> Result<()> {
         let ssize = self.stack.len();
 
         match self.next()? {
@@ -84,7 +85,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         loop {
             match self.next()? {
                 Token::LeftBrace => self.stack.push(b'{'),
-                Token::LeftBracket => todo!(),
+                Token::LeftBracket => self.stack.push(b'['),
                 Token::RightBrace => {
                     if self.stack.pop() != Some(b'{') {
                         return Err(anyhow!("mismatched brackets: matching {{, got ]"));
@@ -107,7 +108,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
-    fn emit_value(self: &mut Self) -> Result<()> {
+    fn emit_value(&mut self) -> Result<()> {
         // long method, basically the same system as skip_value but we emit tokens as we go
         let ssize = self.stack.len();
 
@@ -198,7 +199,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
-    fn exit_object(self: &mut Self) -> Result<bool> {
+    fn exit_object(&mut self) -> Result<bool> {
         match self.next()? {
             Token::RightBrace => Ok(true),
             Token::Comma => Ok(false),
@@ -208,7 +209,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
-    fn exit_array(self: &mut Self) -> Result<bool> {
+    fn exit_array(&mut self) -> Result<bool> {
         match self.next()? {
             Token::RightBracket => Ok(true),
             Token::Comma => Ok(false),
@@ -218,7 +219,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
-    fn seek_key(self: &mut Self, key: &str) -> Result<()> {
+    fn seek_key(&mut self, key: &str) -> Result<()> {
         while let Some(current) = self.lexer.next() {
             let current = current.map_err(|_| anyhow!("invalid token"))?;
             let Token::String(currkey) = current else {
@@ -237,7 +238,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         Err(anyhow!("expected to find key {key}, but didn't"))
     }
 
-    fn seek_end_of_object(self: &mut Self) -> Result<()> {
+    fn seek_end_of_object(&mut self) -> Result<()> {
         loop {
             if self.exit_object()? {
                 return Ok(());
@@ -248,7 +249,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
-    fn scan_schema(self: &mut Self) -> Result<()> {
+    fn scan_schema(&mut self) -> Result<()> {
         self.take(Token::LeftBracket)?;
         let mut next = self.next()?;
         if next == Token::RightBracket {
@@ -277,7 +278,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         Ok(())
     }
 
-    fn scan_datarow(self: &mut Self) -> Result<()> {
+    fn scan_datarow(&mut self) -> Result<()> {
         write!(&mut self.writer, "{{")?;
         let mut idx = 0;
         while idx < self.fields.len() {
@@ -291,11 +292,11 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
             }
         }
         self.take(Token::RightBracket)?;
-        write!(&mut self.writer, "}}\n")?;
+        writeln!(&mut self.writer, "}}")?;
         Ok(())
     }
 
-    fn scan_datarows(self: &mut Self) -> Result<()> {
+    fn scan_datarows(&mut self) -> Result<()> {
         self.take(Token::LeftBracket)?;
         let mut next = self.next()?;
         if next == Token::RightBracket {
@@ -316,7 +317,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         Ok(())
     }
 
-    fn scan_jdbc(self: &mut Self) -> Result<()> {
+    fn scan_jdbc(&mut self) -> Result<()> {
         self.take(Token::LeftBrace)?;
         self.seek_key("\"schema\"")
             .context("failed to seek schema key")?;
@@ -363,7 +364,7 @@ mod tests {
         let input = include_str!("../samples/messages.json");
         let mut output = Vec::new();
 
-        convert_jdbc(&input, &mut output).unwrap();
+        convert_jdbc(input, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 10);
@@ -388,7 +389,7 @@ mod tests {
         let input = include_str!("../samples/request_logs.json");
         let mut output = Vec::new();
 
-        convert_jdbc(&input, &mut output).unwrap();
+        convert_jdbc(input, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 10);
@@ -407,7 +408,7 @@ mod tests {
         let input = include_str!("../samples/big5.json");
         let mut output = Vec::new();
 
-        convert_jdbc(&input, &mut output).unwrap();
+        convert_jdbc(input, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 10);
@@ -429,7 +430,7 @@ mod tests {
         let input = r#"{"schema":[{"name":"id","type":"int"}],"datarows":[]}"#;
         let mut output = Vec::new();
 
-        convert_jdbc(&input, &mut output).unwrap();
+        convert_jdbc(input, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 0);
@@ -440,7 +441,7 @@ mod tests {
         let input = r#"{"schema":[{"name":"name","type":"string"},{"name":"age","type":"int"}],"datarows":[["Alice",30]]}"#;
         let mut output = Vec::new();
 
-        convert_jdbc(&input, &mut output).unwrap();
+        convert_jdbc(input, &mut output).unwrap();
 
         let records = parse_output_lines(&output);
         assert_eq!(records.len(), 1);
