@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::env;
 use std::fs::File;
-use std::io::{self, BufReader, BufWriter, Read};
+use std::io::{self, BufReader, BufWriter, Read, Write};
 use std::process;
 use unjdbc::convert_jdbc;
 
@@ -18,6 +18,7 @@ fn main() -> Result<()> {
         file.read_to_string(&mut buf)?;
         let mut writer = BufWriter::new(stdout.lock());
         convert_jdbc(&buf, &mut writer)?;
+        writer.flush()?;
     } else {
         let mut reader = BufReader::new(stdin.lock());
         let mut buf = String::new();
@@ -27,6 +28,7 @@ fn main() -> Result<()> {
         });
         let mut writer = BufWriter::new(stdout.lock());
         convert_jdbc(&buf, &mut writer)?;
+        writer.flush()?;
     }
     Ok(())
 }

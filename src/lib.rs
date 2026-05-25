@@ -38,7 +38,7 @@ enum Token<'source> {
 
 struct Scanner<'source, 'dest, W: Write> {
     lexer: Lexer<'source, Token<'source>>,
-    writer: &'dest W,
+    writer: &'dest mut W,
     fields: Vec<&'source str>,
     stack: Vec<u8>,
 }
@@ -62,7 +62,7 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
     fn take_string(self: &mut Self) -> Result<Token<'source>> {
         let token = self.next()?;
         match token {
-            Token::String(s) => Ok(token),
+            Token::String(_) => Ok(token),
             _ => Err(anyhow!("expected a string, found {token:?}")),
         }
     }
@@ -159,37 +159,82 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
 
     fn scan_schema(self: &mut Self) -> Result<()> {
         self.take(Token::LeftBracket)?;
-        while !self.exit_array()? {
-            self.take(Token::LeftBrace)?;
+        let mut next = self.next()?;
+        if next == Token::RightBracket {
+            return Ok(());
+        }
+        loop {
+            if next != Token::LeftBrace {
+                return Err(anyhow!("expected an object, found {next:?}"));
+            }
             self.seek_key("\"name\"")?;
             match self.take_string()? {
                 Token::String(s) => self.fields.push(s),
                 _ => unreachable!(),
             }
             self.seek_end_of_object()?;
+            if self.exit_array()? {
+                break;
+            }
+            next = self.next()?;
+        }
+        if self.exit_object()? {
+            return Err(anyhow!(
+                "object should continue after schema (for datarows), but terminates"
+            ));
         }
         Ok(())
     }
 
     fn scan_datarow(self: &mut Self) -> Result<()> {
-        todo!()
+        write!(&mut self.writer, "{{")?;
+        let mut idx = 0;
+        while idx < self.fields.len() {
+            write!(&mut self.writer, "{}: TODO", self.fields[idx])?;
+            self.skip_value()?;
+            idx += 1;
+            if idx < self.fields.len() {
+                self.take(Token::Comma)
+                    .context("ran out of elements in datarow")?;
+                write!(&mut self.writer, ", ")?;
+            }
+        }
+        self.take(Token::RightBracket)?;
+        write!(&mut self.writer, "}}\n")?;
+        Ok(())
     }
 
     fn scan_datarows(self: &mut Self) -> Result<()> {
         self.take(Token::LeftBracket)?;
-        while !self.exit_array()? {
+        let mut next = self.next()?;
+        if next == Token::RightBracket {
+            return Ok(());
+        }
+        loop {
+            if next != Token::LeftBracket {
+                return Err(anyhow!(
+                    "datarows entries should be lists, but starts with {next:?}"
+                ));
+            }
             self.scan_datarow()?;
+            if self.exit_array()? {
+                break;
+            }
+            next = self.next()?;
         }
         Ok(())
     }
 
     fn scan_jdbc(self: &mut Self) -> Result<()> {
         self.take(Token::LeftBrace)?;
-        self.seek_key("\"schema\"")?;
-        self.scan_schema()?;
-        self.seek_key("\"datarows\"")?;
-        self.scan_datarows()?;
-        self.seek_end_of_object()?;
+        self.seek_key("\"schema\"")
+            .context("failed to seek schema key")?;
+        self.scan_schema().context("failed to scan schema")?;
+        self.seek_key("\"datarows\"")
+            .context("failed to seek datarows key")?;
+        self.scan_datarows().context("failed to scan datarows")?;
+        self.seek_end_of_object()
+            .context("failed to find end of object after datarows")?;
         Ok(())
     }
 }
@@ -204,7 +249,7 @@ pub fn convert_jdbc<W: Write>(input_json: &str, writer: &mut W) -> Result<()> {
     };
     scanner
         .scan_jdbc()
-        .context("while scanning the jdbc input")?;
+        .context("failed to scan the jdbc input")?;
     Ok(())
 }
 
