@@ -137,7 +137,14 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
     }
 
     fn seek_end_of_object(self: &mut Self) -> Result<()> {
-        todo!()
+        loop {
+            if self.exit_object()? {
+                return Ok(());
+            }
+            self.take_string()?;
+            self.take(Token::Colon)?;
+            self.skip_value()?;
+        }
     }
 
     fn scan_schema(self: &mut Self) -> Result<()> {
