@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result, anyhow};
 use logos::{Lexer, Logos};
 use std::io::Write;
 
@@ -8,7 +8,7 @@ use std::io::Write;
 /// For numbers and strings, regex is from logos handbook.
 #[derive(Logos, Debug, PartialEq)]
 #[logos(skip r"[ \t\r\n]+")]
-enum Token {
+enum Token<'source> {
     // object markers
     #[token("{")]
     LeftBrace,
@@ -31,30 +31,109 @@ enum Token {
     #[token("null")]
     Null,
     #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?")]
-    Number,
+    Number(&'source str),
     #[regex(r#""([^"\\\x00-\x1F]|\\(["\\bnfrt/]|u[a-fA-F0-9]{4}))*""#)]
-    String,
+    String(&'source str),
 }
 
-struct Scanner<'a, 'b, W: Write> {
-    lexer: Lexer<'a, Token>,
-    writer: &'b W,
-    fields: Vec<&'a str>,
-    stack: Vec<char>,
+struct Scanner<'source, 'dest, W: Write> {
+    lexer: Lexer<'source, Token<'source>>,
+    writer: &'dest W,
+    fields: Vec<&'source str>,
+    stack: Vec<u8>,
 }
 
-impl<'a, 'b, W: Write> Scanner<'a, 'b, W> {
-    fn take(self: &mut Self, token: Token) -> Result<Token> {
+impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
+    fn next(self: &mut Self) -> Result<Token<'source>> {
         match self.lexer.next() {
-            Some(Ok(t)) if t == token => Ok(token),
-            Some(Ok(t)) => Err(anyhow!("expected {:?}, found {:?}", token, t)),
-            Some(Err(_)) => Err(anyhow!("invalid token, expected {:?}", token)),
-            None => Err(anyhow!("premature eof, expected {:?}", token)),
+            Some(Ok(t)) => Ok(t),
+            Some(Err(_)) => Err(anyhow!("invalid token")),
+            None => Err(anyhow!("unexpected eof")),
         }
     }
 
-    fn seek_key(self: &mut Self, _key: &str) -> Result<()> {
-        todo!()
+    fn take(self: &mut Self, token: Token<'static>) -> Result<Token<'source>> {
+        match self.next()? {
+            t if t == token => Ok(token),
+            t => Err(anyhow!("expected {token:?}, found {t:?}")),
+        }
+    }
+
+    fn take_string(self: &mut Self) -> Result<Token<'source>> {
+        let token = self.next()?;
+        match token {
+            Token::String(s) => Ok(token),
+            _ => Err(anyhow!("expected a string, found {token:?}")),
+        }
+    }
+
+    fn skip_value(self: &mut Self) -> Result<()> {
+        let ssize = self.stack.len();
+
+        match self.next()? {
+            Token::Null | Token::True | Token::False | Token::Number(_) | Token::String(_) => {
+                return Ok(());
+            }
+            Token::LeftBrace => self.stack.push(b'{'),
+            Token::LeftBracket => self.stack.push(b'['),
+            other => {
+                return Err(anyhow!("expected a value, found {other:?}"));
+            }
+        }
+
+        loop {
+            match self.next()? {
+                Token::LeftBrace => self.stack.push(b'{'),
+                Token::LeftBracket => todo!(),
+                Token::RightBrace => {
+                    if self.stack.pop() != Some(b'{') {
+                        return Err(anyhow!("mismatched brackets: matching {{, got ]"));
+                    }
+                    if self.stack.len() == ssize {
+                        return Ok(());
+                    }
+                }
+                Token::RightBracket => {
+                    if self.stack.pop() != Some(b'[') {
+                        return Err(anyhow!("mismatched brackets: matching [, got }}"));
+                    }
+                    if self.stack.len() == ssize {
+                        return Ok(());
+                    }
+                }
+                // there might be invalid json in here -- for the scope of our tool we really don't care
+                _ => continue,
+            }
+        }
+    }
+
+    fn exit_object(self: &mut Self) -> Result<bool> {
+        match self.next()? {
+            Token::RightBrace => Ok(true),
+            Token::Comma => Ok(false),
+            other => Err(anyhow!(
+                "expected comma or end-of-object marker, found {other:?}"
+            )),
+        }
+    }
+
+    fn seek_key(self: &mut Self, key: &str) -> Result<()> {
+        while let Some(current) = self.lexer.next() {
+            let current = current.map_err(|_| anyhow!("invalid token"))?;
+            let Token::String(currkey) = current else {
+                return Err(anyhow!("expected an object key, got {:?}", current));
+            };
+            self.take(Token::Colon)?;
+            if key == currkey {
+                return Ok(());
+            }
+            self.skip_value()?;
+            if self.exit_object()? {
+                break;
+            }
+        }
+
+        Err(anyhow!("expected to find key {key}, but didn't"))
     }
 
     fn seek_end_of_object(self: &mut Self) -> Result<()> {
@@ -71,9 +150,9 @@ impl<'a, 'b, W: Write> Scanner<'a, 'b, W> {
 
     fn scan_jdbc(self: &mut Self) -> Result<()> {
         self.take(Token::LeftBrace)?;
-        self.seek_key("schema")?;
+        self.seek_key("\"schema\"")?;
         self.scan_schema()?;
-        self.seek_key("datarows")?;
+        self.seek_key("\"datarows\"")?;
         self.scan_datarows()?;
         self.seek_end_of_object()?;
         Ok(())
@@ -88,7 +167,9 @@ pub fn convert_jdbc<W: Write>(input_json: &str, writer: &mut W) -> Result<()> {
         fields: Vec::new(),
         stack: Vec::new(),
     };
-    scanner.scan_jdbc()?;
+    scanner
+        .scan_jdbc()
+        .context("while scanning the jdbc input")?;
     Ok(())
 }
 
