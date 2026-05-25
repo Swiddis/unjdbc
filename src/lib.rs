@@ -117,6 +117,16 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
+    fn exit_array(self: &mut Self) -> Result<bool> {
+        match self.next()? {
+            Token::RightBracket => Ok(true),
+            Token::Comma => Ok(false),
+            other => Err(anyhow!(
+                "expected comma or end-of-array marker, found {other:?}"
+            )),
+        }
+    }
+
     fn seek_key(self: &mut Self, key: &str) -> Result<()> {
         while let Some(current) = self.lexer.next() {
             let current = current.map_err(|_| anyhow!("invalid token"))?;
@@ -148,11 +158,29 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
     }
 
     fn scan_schema(self: &mut Self) -> Result<()> {
+        self.take(Token::LeftBracket)?;
+        while !self.exit_array()? {
+            self.take(Token::LeftBrace)?;
+            self.seek_key("\"name\"")?;
+            match self.take_string()? {
+                Token::String(s) => self.fields.push(s),
+                _ => unreachable!(),
+            }
+            self.seek_end_of_object()?;
+        }
+        Ok(())
+    }
+
+    fn scan_datarow(self: &mut Self) -> Result<()> {
         todo!()
     }
 
     fn scan_datarows(self: &mut Self) -> Result<()> {
-        todo!()
+        self.take(Token::LeftBracket)?;
+        while !self.exit_array()? {
+            self.scan_datarow()?;
+        }
+        Ok(())
     }
 
     fn scan_jdbc(self: &mut Self) -> Result<()> {
