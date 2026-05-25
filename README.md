@@ -54,7 +54,7 @@ This is a personal exercise in trying to make the conversion run as fast as poss
 The core logic is trivial to do in Serde (and a past version of the tool did),
 but I wanted to see how far I could go.
 This tool is purpose-built to do exactly this conversion.
-It also requires that `schema` comes before `datarows`.
+It also requires that `schema` comes before `datarows`, which is true of all JDBC-emitting services I work with.
 
 The current version is based on a custom purpose-built parser based on [Logos](https://github.com/maciejhirsz/logos).
 While it catches many types of errors, those errors aren't particularly descriptive, and many cases aren't caught.
@@ -62,3 +62,10 @@ While it catches many types of errors, those errors aren't particularly descript
 This allows it to run faster than `wc`.
 
 For a more reliable version, check out the `sonic` or `serde` historic tags.
+
+## On AI
+
+No AI code is in the present mainline.
+
+The initial commit was largely AI as I needed a tool quickly for an immediate work task.
+It's been theseus'd out as I took over and started optimizing for fun.
