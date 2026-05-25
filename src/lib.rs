@@ -107,6 +107,97 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         }
     }
 
+    fn emit_value(self: &mut Self) -> Result<()> {
+        // long method, basically the same system as skip_value but we emit tokens as we go
+        let ssize = self.stack.len();
+
+        match self.next()? {
+            Token::Null => {
+                write!(&mut self.writer, "null")?;
+                return Ok(());
+            }
+            Token::True => {
+                write!(&mut self.writer, "true")?;
+                return Ok(());
+            }
+            Token::False => {
+                write!(&mut self.writer, "false")?;
+                return Ok(());
+            }
+            Token::Number(s) => {
+                write!(&mut self.writer, "{s}")?;
+                return Ok(());
+            }
+            Token::String(s) => {
+                write!(&mut self.writer, "{s}")?;
+                return Ok(());
+            }
+            Token::LeftBrace => {
+                write!(&mut self.writer, "{{")?;
+                self.stack.push(b'{');
+            }
+            Token::LeftBracket => {
+                write!(&mut self.writer, "[")?;
+                self.stack.push(b'[');
+            }
+            other => {
+                return Err(anyhow!("expected a value, found {other:?}"));
+            }
+        }
+
+        loop {
+            match self.next()? {
+                Token::LeftBrace => {
+                    write!(&mut self.writer, "{{")?;
+                    self.stack.push(b'{');
+                }
+                Token::LeftBracket => {
+                    write!(&mut self.writer, "[")?;
+                    self.stack.push(b'[');
+                }
+                Token::RightBrace => {
+                    if self.stack.pop() != Some(b'{') {
+                        return Err(anyhow!("mismatched brackets: matching {{, got ]"));
+                    }
+                    write!(&mut self.writer, "}}")?;
+                    if self.stack.len() == ssize {
+                        return Ok(());
+                    }
+                }
+                Token::RightBracket => {
+                    if self.stack.pop() != Some(b'[') {
+                        return Err(anyhow!("mismatched brackets: matching [, got }}"));
+                    }
+                    write!(&mut self.writer, "]")?;
+                    if self.stack.len() == ssize {
+                        return Ok(());
+                    }
+                }
+                Token::Null => {
+                    write!(&mut self.writer, "null")?;
+                }
+                Token::True => {
+                    write!(&mut self.writer, "true")?;
+                }
+                Token::False => {
+                    write!(&mut self.writer, "false")?;
+                }
+                Token::Number(s) => {
+                    write!(&mut self.writer, "{s}")?;
+                }
+                Token::String(s) => {
+                    write!(&mut self.writer, "{s}")?;
+                }
+                Token::Colon => {
+                    write!(&mut self.writer, ": ")?;
+                }
+                Token::Comma => {
+                    write!(&mut self.writer, ", ")?;
+                }
+            }
+        }
+    }
+
     fn exit_object(self: &mut Self) -> Result<bool> {
         match self.next()? {
             Token::RightBrace => Ok(true),
@@ -190,8 +281,8 @@ impl<'source, 'dest, W: Write> Scanner<'source, 'dest, W> {
         write!(&mut self.writer, "{{")?;
         let mut idx = 0;
         while idx < self.fields.len() {
-            write!(&mut self.writer, "{}: TODO", self.fields[idx])?;
-            self.skip_value()?;
+            write!(&mut self.writer, "{}: ", self.fields[idx])?;
+            self.emit_value()?;
             idx += 1;
             if idx < self.fields.len() {
                 self.take(Token::Comma)
