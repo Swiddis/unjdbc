@@ -1,6 +1,6 @@
 # unjdbc
 
-Convert JDBC table output to regular JSON arrays.
+Convert JDBC table output to regular JSON objects.
 
 ## What it does
 
