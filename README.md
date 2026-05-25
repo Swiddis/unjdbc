@@ -47,3 +47,18 @@ You can also pipe to `jq` for further processing:
 ```bash
 unjdbc samples/big5.json | jq -s 'length'
 ```
+
+## On Performance
+
+This is a personal exercise in trying to make the conversion run as fast as possible.
+The core logic is trivial to do in Serde (and a past version of the tool did),
+but I wanted to see how far I could go.
+This tool is purpose-built to do exactly this conversion.
+It also requires that `schema` comes before `datarows`.
+
+The current version is based on a custom purpose-built parser based on [Logos](https://github.com/maciejhirsz/logos).
+While it catches many types of errors, those errors aren't particularly descriptive, and many cases aren't caught.
+(In particular, invalid objects in datarows are likely to be copied verbatim.)
+This allows it to run faster than `wc`.
+
+For a more reliable version, check out the `sonic` or `serde` historic tags.
