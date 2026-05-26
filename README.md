@@ -64,7 +64,7 @@ This allows it to run faster than `wc`.
 Some notes on the past and possible future of this tool are in `NOTES.md`.
 These were written before the current version so the tenses might be off.
 
-For a more reliable version, check out the `sonic` or `serde` historic tags.
+For a more robust version, check out the `sonic` or `serde` historic tags.
 
 ## On AI
 
